@@ -35,6 +35,8 @@ header {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+	row-gap: 10rem;
+	justify-content: space-between;
 }
 
 header .header_logo {
@@ -44,7 +46,13 @@ header .header_logo {
 	height: 10rem;
 }
 
-Main {
+header .dark_mode_switch {
+	position: relative;
+	right: 7rem;
+}
+
+main,
+.notfound {
 	background-color: var(--dark-2);
 	height: calc(100vh - 6rem);
 }
