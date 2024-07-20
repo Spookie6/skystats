@@ -1,31 +1,23 @@
 require("dotenv").config();
 
-import { getData } from "@/app/Util/functions";
+import { getData, capitalise, parseInventory } from "@/app/Util/functions";
 import { getNetworth } from "skyhelper-networth";
 import * as NBT from "prismarine-nbt";
 import { mcCodeParse } from "@/app/Util/mc-codes";
-
-function capitalise(string){
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-function parseInventory(inventory) {
-    let res = [];
-    inventory.forEach((element, index) => {
-        if (Object.keys(element).length !== 0) {
-            res.push(`${mcCodeParse(element.tag.display.Name)}`);
-        }
-    }); // Constructs HTML string of player items in inventory
-    return res;
-}
+import { notFound } from "next/navigation";
 
 export default async function Page({ params }) {
     // Gets mc player data
     const data = await getData(`https://api.mojang.com/users/profiles/minecraft/${params.username}`);
     // Gets profiles
     const profiles = await getData(`https://api.hypixel.net/v2/skyblock/profiles?key=${process.env.HYPIXEL_API_KEY}&uuid=${data.id}`);
+    console.log(profiles)
+    if (!profiles.profiles) return notFound()
     // Gets currently selected profile
-    const selectedProfile = profiles.profiles.filter((profile) => profile.selected)[0];
+    const selectedProfile = profiles.profiles.filter((profile) => profile.cute_name.toLowerCase() == params.cute_name.toLowerCase())[0];
+    console.log(selectedProfile)
+    if (!selectedProfile) return notFound()
+
     // Gets museum data
     const museumData = await getData(`https://api.hypixel.net/v2/skyblock/museum?key=${process.env.HYPIXEL_API_KEY}&profile=${selectedProfile.profile_id}`);
 
@@ -44,7 +36,7 @@ export default async function Page({ params }) {
     }
 
     // console.log(Object.keys(profileData));
-    console.log(profileData.leveling);
+    // console.log(profileData.leveling);
 
     const invs = [
         "inv_contents", // Inventory
@@ -74,14 +66,15 @@ export default async function Page({ params }) {
             <h1> {params.username} on {selectedProfile.cute_name} </h1>
             <h1>Networth</h1> <div> {niceNetworth} Coins </div>
             <h1>Accesories</h1> <div>
-                Selected Power: {capitalise(profileData.accessory_bag_storage.selected_power)} <br/>
-                Highest Magical Power: {profileData.accessory_bag_storage.highest_magical_power} <br/>
+                Selected Power: {capitalise(profileData.accessory_bag_storage.selected_power)} <br />
+                Highest Magical Power: {profileData.accessory_bag_storage.highest_magical_power} <br />
             </div>
             <h1>Level</h1> <div>
-                Level: {Math.floor(profileData.leveling.experience / 100)} <br/>
-                Progress: {profileData.leveling.experience % 100} / 100 <br/>
+                Level: {Math.floor(profileData.leveling.experience / 100)} <br />
+                Progress: {profileData.leveling.experience % 100} / 100 <br />
             </div>
-            <div dangerouslySetInnerHTML = {{__html: inventory_contents}}></div>
+            <div dangerouslySetInnerHTML={{ __html: inventory_contents }}></div>
         </div>
     );
+
 }
